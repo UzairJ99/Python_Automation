@@ -31,4 +31,7 @@ print(all_data) #Display all data
 
 print(all_data.shape) #Get the rows, columns
 print(all_data["Heading 4"]) #Show only column 4, along with the data type and name of the column
-    
+
+errors = all_data["Heading 4"].count() #Get the number of rows in the last column
+print("Number of errors: " + errors)
+
