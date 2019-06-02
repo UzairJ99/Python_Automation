@@ -4,6 +4,10 @@
 
 #Import necessary libraries for excel support
 import pandas as pd
+import time
+
+#Set start time to calculate run time of script
+start_time = time.process_time()
 
 #Read the excel files
 file1 = pd.read_excel (r'C:\Users\Uzair\Desktop\Work\Automation\file1.xlsx')
@@ -33,5 +37,7 @@ print(all_data.shape) #Get the rows, columns
 print(all_data["Heading 4"]) #Show only column 4, along with the data type and name of the column
 
 errors = all_data["Heading 4"].count() #Get the number of rows in the last column
-print("Number of errors: " + errors)
+print("Number of errors: ", errors)
 
+#Show execution time for process
+print (time.process_time() - start_time, "seconds to execute") 
