@@ -2,8 +2,9 @@
 #Python script to automate monthly incident trending reports
 #2019-06-01
 
-#Import necessary libraries for excel support
+#Import necessary libraries
 import pandas as pd
+from pandas import ExcelFile
 import time
 import matplotlib.pyplot as plt
 
@@ -11,28 +12,33 @@ import matplotlib.pyplot as plt
 start_time = time.process_time()
 
 #Read the excel files
-file1 = pd.read_excel (r'C:\Users\Uzair\Desktop\Work\Automation\file1.xlsx')
+file1 = pd.read_excel (r'week1.xlsx')
 print ("Reading first file...")
 
-file2 = pd.read_excel (r'C:\Users\Uzair\Desktop\Work\Automation\file2.xlsx')
+file2 = pd.read_excel (r'week2.xlsx')
 print ("Reading second file...")
 
-file3 = pd.read_excel (r'C:\Users\Uzair\Desktop\Work\Automation\file3.xlsx')
+file3 = pd.read_excel (r'week3.xlsx')
 print ("Reading third file...")
+
+file4 = pd.read_excel (r'week4.xlsx')
+print ("Reading fourth file...")
 
 #Create a DataFrame to hold all the files data
 all_data = pd.DataFrame()
 all_data = all_data.append(file1, ignore_index = True) #append the sheet to the DataFrame
-print ("Appending files...(1/3)")
+print ("Appending files...(1/4)")
 all_data = all_data.append(file2, ignore_index = True)
-print ("Appending files...(2/3)")
+print ("Appending files...(2/4)")
 all_data = all_data.append(file3, ignore_index = True)
-print ("Appending files...(3/3)")
+print ("Appending files...(3/4)")
+all_data = all_data.append(file4, ignore_index = True)
+print ("Appending files...(4/4)")
 
 print ("\n", "Combined data: ")
 print("\n", all_data) #Display all data
 
-all_data.to_excel(r'C:\Users\Uzair\Desktop\Work\Automation\mergedFile.xlsx') #Save DataFrame as a new Excel file
+all_data.to_excel(r'mergedFile.xlsx') #Save DataFrame as a new Excel file
 
 print("\n", "Rows, Columns: ", all_data.shape) #Get the rows, columns
 print("\n", all_data["MessageAlert"]) #Show only column 4, along with the data type and name of the column
@@ -70,13 +76,43 @@ for a in range(len(errorList)):
         #add a tuple for each error into the errorDB
         errorDB.append((errorList[a], errorCount[a]))
 
+incidentList = [] #2D Array to hold the format of [error[incidents]]
+#Get incident list
+for b in range(len(errorList)):
+        smallerList = [] #smaller list is a grouping of all similar incidents by their INC# and AlertMessage
+        incidentList.append(smallerList) #add a new list for each error
+        for c in range(errors):
+                if errorList[b] == all_data.iloc[c,5]: #check if there's a match
+                        smallerList.append(all_data.iloc[c,0]) #insert the incident number into the list
+
+#Inserting incident columns into new dataframe
+incidentDF = pd.DataFrame()
+for d in range(len(errorList)): #loop through error list
+        for e in range(len(incidentList[d])):
+                #set values to corresponding [error: incident] format
+                #incidentDF.set_value(e, d, incidentList[d][e]) ---commented out because newer versions will remove this method---
+                incidentDF.at[e,d] = incidentList[d][e]
+#Setting column names to errors
+incidentDF.columns = errorList
+
+incidentDF.to_excel(r'incidentsList.xlsx')
+
+print("\n", "New dataframe: ", incidentDF) #display incident dataframe
 print("\n", errorDB)
 errorDBLabels = ["Error Type", "Occurrences"] #labels for the new data frame
 errorData = pd.DataFrame.from_records(errorDB, columns = errorDBLabels) #data frame to display errors vs occurances
+
+#Calculating weekly avg occurances for each error
+for f in range(len(errorList)):
+        errorData.at[f,2] = errorCount[f]//4
+
+errorDBLabels = ["Error Type", "Occurrences", "Weekly Average"] #labels for the new data frame
+errorData.columns = errorDBLabels
 print("\n", errorData)
 
-errorData.to_excel(r'C:\Users\Uzair\Desktop\Work\Automation\analysisFile.xlsx') #Save DataFrame as a new Excel file
+errorData.to_excel(r'reoccuranceCount.xlsx') #Save DataFrame as a new Excel file
 
+#create dataframe for bar graph
 barGraph = pd.DataFrame({'Error': errorList, 'Occurances': errorCount})
 
 barGraph.plot.bar(x='Error', y='Occurances', rot=0)
